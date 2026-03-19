@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI Business Automation — Interactive Masterclass</title>
+
+<!-- CDN Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+<style>
+/* ===== RESET & VARIABLES ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --p:#6C5CE7;--s:#00CEC9;--a:#FD79A8;--g:#fdcb6e;--b:#74b9ff;
+  --dark:#0a0a1a;--darker:#060612;
+  --glass:rgba(255,255,255,.04);--gb:rgba(255,255,255,.08);
+  --t:#ccd;--tw:#fff;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--darker);color:var(--t);overflow-x:hidden}
+
+/* ===== THREE.JS CANVAS ===== */
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ===== LOADER ===== */
+#loader{position:fixed;inset:0;background:var(--darker);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .8s,visibility .8s}
+#loader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.lr{width:70px;height:70px;border:3px solid transparent;border-top-color:var(--p);border-radius:50%;animation:sp 1s linear infinite;position:relative}
+.lr::after{content:'';position:absolute;inset:7px;border:3px solid transparent;border-top-color:var(--s);border-radius:50%;animation:sp .6s linear infinite reverse}
+@keyframes sp{to{transform:rotate(360deg)}}
+.lt{margin-top:22px;font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--p)}
+
+/* ===== PROGRESS BAR ===== */
+#progressBar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--p),var(--s),var(--a));z-index:9999;transition:width .4s;box-shadow:0 0 14px var(--p);width:0}
+
+/* ===== SIDE NAV DOTS ===== */
+#sideNav{position:fixed;top:50%;right:18px;transform:translateY(-50%);z-index:9998;display:flex;flex-direction:column;gap:10px}
+.nd{width:10px;height:10px;border-radius:50%;border:2px solid var(--gb);background:transparent;cursor:pointer;transition:all .3s;position:relative}
+.nd:hover,.nd.active{border-color:var(--p);background:var(--p);box-shadow:0 0 10px var(--p)}
+.nd .tip{position:absolute;right:22px;top:50%;transform:translateY(-50%);background:var(--dark);border:1px solid var(--gb);padding:4px 10px;border-radius:6px;font-size:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .3s;color:var(--tw)}
+.nd:hover .tip{opacity:1}
+
+/* ===== SOUND TOGGLE ===== */
+#soundBtn{position:fixed;bottom:20px;right:20px;z-index:9998;width:42px;height:42px;border-radius:50%;border:1px solid var(--gb);background:var(--glass);backdrop-filter:blur(10px);color:var(--t);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .3s}
+#soundBtn:hover{border-color:var(--p);color:var(--p)}
+
+/* ===== SECTIONS ===== */
+.sec{min-height:100vh;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:80px 32px}
+.sec-in{max-width:1050px;width:100%}
+
+/* ===== BADGES & TITLES ===== */
+.badge{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:20px;border:1px solid var(--gb);background:var(--glass);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--s);margin-bottom:18px;backdrop-filter:blur(10px)}
+.sec-t{font-size:clamp(30px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:14px;background:linear-gradient(135deg,var(--tw),var(--p));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sec-sub{font-size:clamp(15px,2vw,18px);color:rgba(255,255,255,.55);max-width:580px;line-height:1.65;margin-bottom:36px}
+
+/* ===== GLASS CARD ===== */
+.gc{background:var(--glass);border:1px solid var(--gb);border-radius:16px;padding:28px;backdrop-filter:blur(16px);transition:all .4s;cursor:pointer;position:relative;overflow:hidden}
+.gc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(108,92,231,.1),transparent);opacity:0;transition:opacity .4s}
+.gc:hover::before{opacity:1}
+.gc:hover{border-color:rgba(108,92,231,.3);transform:translateY(-4px);box-shadow:0 16px 50px rgba(108,92,231,.12)}
+
+/* ===== GRIDS ===== */
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px}
+
+/* ===== ICON BOX ===== */
+.ib{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
+.ib-p{background:rgba(108,92,231,.14);color:var(--p)}.ib-s{background:rgba(0,206,201,.14);color:var(--s)}.ib-a{background:rgba(253,121,168,.14);color:var(--a)}.ib-g{background:rgba(253,203,110,.14);color:var(--g)}.ib-b{background:rgba(116,185,255,.14);color:var(--b)}
+
+.ct{font-size:17px;font-weight:700;color:var(--tw);margin-bottom:6px}
+.cd{font-size:13px;line-height:1.6;color:rgba(255,255,255,.45)}
+
+/* ===== TEACHER BUBBLE ===== */
+.tb{display:flex;gap:14px;align-items:flex-start;margin-bottom:28px;opacity:0;transform:translateY(20px);transition:all .7s}
+.tb.vis{opacity:1;transform:translateY(0)}
+.ta{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--s));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.tm{background:var(--glass);border:1px solid var(--gb);border-radius:0 14px 14px 14px;padding:14px 18px;font-size:14px;line-height:1.7;color:rgba(255,255,255,.75);max-width:680px;backdrop-filter:blur(10px)}
+.tm .hl{color:var(--s);font-weight:600}
+.tm .hlp{color:var(--p);font-weight:600}
+.tw-cursor{display:inline-block;width:2px;height:1em;background:var(--s);margin-left:2px;animation:bl .7s infinite;vertical-align:text-bottom}
+@keyframes bl{0%,50%{opacity:1}51%,100%{opacity:0}}
+
+/* ===== STEP FLOW ===== */
+.sf{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:36px;gap:0}
+.sn{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:all .3s;padding:10px}
+.sn:hover{transform:scale(1.08)}
+.sn-n{width:38px;height:38px;border-radius:50%;border:2px solid var(--gb);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;transition:all .4s}
+.sn.act .sn-n{border-color:var(--p);background:var(--p);color:#fff;box-shadow:0 0 18px rgba(108,92,231,.5)}
+.sn.done .sn-n{border-color:var(--s);background:var(--s);color:#fff}
+.sn-l{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);transition:color .3s}
+.sn.act .sn-l{color:var(--p)}.sn.done .sn-l{color:var(--s)}
+.sc{width:32px;height:2px;background:var(--gb);transition:background .4s}
+.sc.act{background:linear-gradient(90deg,var(--s),var(--p))}
+
+/* ===== MINDSET COMPARE ===== */
+.mc{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
+.mc-col{padding:22px;border-radius:16px;border:1px solid var(--gb);transition:all .4s}
+.mc-col.doer{background:rgba(253,121,168,.04);border-color:rgba(253,121,168,.18)}
+.mc-col.dir{background:rgba(0,206,201,.04);border-color:rgba(0,206,201,.18)}
+.mc-col h3{font-size:18px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.mc-col.doer h3{color:var(--a)}.mc-col.dir h3{color:var(--s)}
+.mi{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:13px;color:rgba(255,255,255,.55)}
+.mi i{font-size:11px}
+.mc-col.doer .mi i{color:var(--a)}.mc-col.dir .mi i{color:var(--s)}
+
+/* ===== ACCORDION ===== */
+.acc{border:1px solid var(--gb);border-radius:12px;margin-bottom:10px;overflow:hidden;background:var(--glass);backdrop-filter:blur(10px)}
+.acc-h{padding:14px 18px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:14px;color:var(--tw);transition:all .3s}
+.acc-h:hover{color:var(--p)}
+.acc-h i{transition:transform .3s;font-size:11px}
+.acc.open .acc-h i{transform:rotate(180deg)}
+.acc-b{max-height:0;overflow:hidden;transition:max-height .4s;padding:0 18px}
+.acc.open .acc-b{max-height:300px;padding-bottom:14px}
+.acc-b p{font-size:13px;line-height:1.7;color:rgba(255,255,255,.55)}
+
+/* ===== INTERACTIVE LIST ===== */
+.il{list-style:none;display:flex;flex-direction:column;gap:10px}
+.il li{padding:14px 18px;border-radius:12px;background:var(--glass);border:1px solid var(--gb);cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:11px;font-size:13px}
+.il li:hover{border-color:var(--p);background:rgba(108,92,231,.06);padding-left:24px}
+.il .li-i{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(108,92,231,.14);color:var(--p);flex-shrink:0;font-size:13px}
+.il .li-arr{color:rgba(255,255,255,.25);transition:all .3s;margin-left:auto}
+.il li:hover .li-arr{color:var(--p);transform:translateX(4px)}
+
+/* ===== QUIZ ===== */
+.qc{background:var(--glass);border:1px solid var(--gb);border-radius:16px;padding:28px;max-width:580px;margin:20px auto;backdrop-filter:blur(16px)}
+.qq{font-size:16px;font-weight:600;color:var(--tw);margin-bottom:20px}
+.qo{display:flex;flex-direction:column;gap:10px}
+.qo-i{padding:12px 18px;border-radius:10px;border:1px solid var(--gb);background:rgba(255,255,255,.02);cursor:pointer;transition:all .3s;font-size:13px;display:flex;align-items:center;gap:10px}
+.qo-i:hover{border-color:var(--p);background:rgba(108,92,231,.06)}
+.qo-i.ok{border-color:var(--s)!important;background:rgba(0,206,201,.12)!important;color:var(--s)}
+.qo-i.no{border-color:var(--a)!important;background:rgba(253,121,168,.12)!important;color:var(--a)}
+.qo-l{width:26px;height:26px;border-radius:50%;border:1px solid var(--gb);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.qo-i.ok .qo-l{border-color:var(--s);background:var(--s);color:#fff}
+.qo-i.no .qo-l{border-color:var(--a);background:var(--a);color:#fff}
+.qf{margin-top:14px;padding:10px 14px;border-radius:8px;font-size:12px;display:none}
+.qf.show{display:block}
+.qf.win{background:rgba(0,206,201,.08);border:1px solid rgba(0,206,201,.25);color:var(--s)}
+.qf.lose{background:rgba(253,121,168,.08);border:1px solid rgba(253,121,168,.25);color:var(--a)}
+
+/* ===== BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;gap:9px;padding:12px 28px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .3s;position:relative;overflow:hidden}
+.btn-p{background:linear-gradient(135deg,var(--p),#a855f7);color:#fff}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(108,92,231,.4)}
+.btn-g{background:var(--glass);border:1px solid var(--gb);color:var(--t);backdrop-filter:blur(10px)}
+.btn-g:hover{border-color:var(--p);color:var(--p);transform:translateY(-2px)}
+.nb{display:flex;gap:14px;margin-top:36px;flex-wrap:wrap}
+
+/* ===== CHECK LIST ===== */
+.cl{list-style:none;display:flex;flex-direction:column;gap:10px}
+.cl li{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.6;color:rgba(255,255,255,.65)}
+.cl li i{color:var(--s);margin-top:3px;flex-shrink:0}
+
+/* ===== TOOL REF ===== */
+.tr{display:inline;padding:2px 7px;border-radius:4px;background:rgba(108,92,231,.14);color:var(--p);font-family:'JetBrains Mono',monospace;font-size:.88em}
+
+/* ===== KEYWORD CLOUD ===== */
+.kc{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.kt{padding:5px 12px;border-radius:20px;font-size:11px;border:1px solid var(--gb);background:var(--glass);color:rgba(255,255,255,.55);cursor:pointer;transition:all .3s}
+.kt:hover{border-color:var(--p);color:var(--p);background:rgba(108,92,231,.08);transform:scale(1.06)}
+
+/* ===== TABLE ===== */
+.st{width:100%;border-collapse:collapse;margin:18px 0;font-size:12px}
+.st th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--gb);color:var(--p);font-weight:600;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.st td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.03);color:rgba(255,255,255,.55)}
+.st tr:hover td{background:rgba(108,92,231,.04);color:rgba(255,255,255,.75)}
+
+/* ===== STAT ===== */
+.stat-n{font-size:44px;font-weight:900;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-l{font-size:12px;color:rgba(255,255,255,.45);margin-top:4px}
+
+/* ===== SCROLL REVEAL ===== */
+.rv{opacity:0;transform:translateY(28px);transition:all .8s cubic-bezier(.4,0,.2,1)}
+.rv.vis{opacity:1;transform:translateY(0)}
+
+/* ===== SCROLL INDICATOR ===== */
+.si{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;animation:bd 2s infinite}
+.si span{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.25)}
+.si i{font-size:14px;color:rgba(255,255,255,.25)}
+@keyframes bd{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* ===== GLOW ===== */
+.glow-orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(80px);opacity:.18}
+
+/* ===== WORKFLOW VISUAL ===== */
+.wv{display:flex;align-items:center;justify-content:center;gap:0;margin:36px 0;flex-wrap:wrap}
+.ws{text-align:center;padding:16px;cursor:pointer;transition:all .3s}
+.ws:hover{transform:scale(1.06)}
+.wi{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 10px;transition:all .4s}
+.ws:hover .wi{box-shadow:0 6px 28px rgba(108,92,231,.28)}
+.wn{font-size:12px;font-weight:600;color:var(--tw)}
+.wa{font-size:18px;color:rgba(255,255,255,.18);padding:0 2px}
+
+/* ===== DETAIL PANEL ===== */
+.dp{background:var(--glass);border:1px solid var(--gb);border-radius:16px;padding:0;max-height:0;overflow:hidden;transition:all .5s;backdrop-filter:blur(16px);margin-top:0}
+.dp.open{max-height:600px;padding:24px;margin-top:20px;border-color:rgba(108,92,231,.25)}
+.dp-title{font-size:20px;font-weight:700;color:var(--tw);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.dp-body{font-size:13px;line-height:1.7;color:rgba(255,255,255,.6)}
+
+/* ===== COMPLETION BADGE ===== */
+.comp-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:20px;background:rgba(0,206,201,.1);border:1px solid rgba(0,206,201,.25);color:var(--s);font-size:12px;font-weight:600}
+
+/* ===== PULSE ===== */
+@keyframes pg{0%,100%{box-shadow:0 0 0 0 rgba(108,92,231,.35)}50%{box-shadow:0 0 0 10px rgba(108,92,231,0)}}
+.pulse{animation:pg 2s infinite}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .sec{padding:50px 16px}
+  .mc{grid-template-columns:1fr}
+  .g2,.g3{grid-template-columns:1fr}
+  .wv{flex-direction:column}
+  .wa{transform:rotate(90deg)}
+  #sideNav{display:none}
+  .sf .sc{width:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOADER ===== -->
+<div id="loader"><div class="lr"></div><div class="lt">Initializing AI Course...</div></div>
+
+<!-- ===== THREE.JS CANVAS ===== -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- ===== PROGRESS BAR ===== -->
+<div id="progressBar"></div>
+
+<!-- ===== SIDE NAV ===== -->
+<div id="sideNav"></div>
+
+<!-- ===== SOUND TOGGLE ===== -->
+<button id="soundBtn" aria-label="Toggle Sound"><i class="fas fa-volume-up"></i></button>
+
+<!-- ===== FOOTER ===== -->
+<footer style="position:fixed;bottom:0;left:0;right:0;padding:12px 20px;text-align:center;background:rgba(6,6,18,.95);border-top:1px solid rgba(255,255,255,.08);backdrop-filter:blur(16px);z-index:9997;color:rgba(255,255,255,.35);font-size:11px;letter-spacing:1px">
+  <span>Amilgaul<span style="color:var(--p)">©</span>2026</span>
+</footer>
+
+<!-- ==================== SECTION 0: HERO ==================== -->
+<section class="sec" id="s0">
+  <div class="sec-in" style="text-align:center">
+    <div class="rv">
+      <div class="badge"><i class="fas fa-robot"></i> Interactive Masterclass</div>
+      <h1 class="sec-t" style="max-width:700px;margin:0 auto 14px">Master AI Business<br>Automation</h1>
+      <p class="sec-sub" style="margin:0 auto 36px">Learn the 5-step framework to transform from a <strong style="color:var(--a)">Doer</strong> into a <strong style="color:var(--s)">Director</strong> — using AI agents to automate lead generation, outreach, delivery &amp; more.</p>
+      <button class="btn btn-p" onclick="scrollToSection(1);playClick()"><span>Start Learning</span> <i class="fas fa-arrow-right"></i></button>
+      <div class="kc" style="justify-content:center;margin-top:32px">
+        <span class="kt">AI Automation</span><span class="kt">Director Mindset</span><span class="kt">Lead Generation</span>
+        <span class="kt">Manis AI</span><span class="kt">Workflow Design</span><span class="kt">Scaling</span>
+        <span class="kt">Personalised Outreach</span><span class="kt">Taste · Vision · Care</span>
+      </div>
+    </div>
+    <div class="si"><span>Scroll to begin</span><i class="fas fa-chevron-down"></i></div>
+  </div>
+  <div class="glow-orb" style="width:400px;height:400px;background:var(--p);top:20%;left:10%"></div>
+  <div class="glow-orb" style="width:300px;height:300px;background:var(--s);bottom:10%;right:15%"></div>
+</section>
+
+<!-- ==================== SECTION 1: MINDSET SHIFT ==================== -->
+<section class="sec" id="s1">
+  <div class="sec-in">
+    <div class="rv">
+      <div class="badge"><i class="fas fa-brain"></i> Lesson 1</div>
+      <h2 class="sec-t">Director vs Doer<br>Mindset</h2>
+      <p class="sec-sub">The most important shift isn't learning a new tool — it's changing <em>how</em> you see yourself in the business.</p>
+    </div>
+    <div class="tb rv" data-tb>
+      <div class="ta">🧑‍🏫</div>
+      <div class="tm">Welcome! The first thing to understand: <span class="hl">you are no longer the one doing the tasks</span>. You are the <span class="hlp">director</span>. AI agents are your team. You tell them <em>what</em> to do, <em>how</em> to do it, and <em>when</em> — then you review and refine the output.<span class="tw-cursor"></span></div>
+    </div>
+    <div class="mc rv">
+      <div class="mc-col doer">
+        <h3><i class="fas fa-times-circle"></i> The Doer</h3>
+        <div class="mi"><i class="fas fa-circle"></i> Manually writes every email</div>
+        <div class="mi"><i class="fas fa-circle"></i> Researches leads one by one</div>
+        <div class="mi"><i class="fas fa-circle"></i> Creates proposals from scratch</div>
+        <div class="mi"><i class="fas fa-circle"></i> Handles scheduling personally</div>
+        <div class="mi"><i class="fas fa-circle"></i> Burns out scaling linearly</div>
+      </div>
+      <div class="mc-col dir">
+        <h3><i class="fas fa-check-circle"></i> The Director</h3>
+        <div class="mi"><i class="fas fa-circle"></i> Instructs AI to draft all emails</div>
+        <div class="mi"><i class="fas fa-circle"></i> AI scrapes &amp; qualifies leads overnight</div>
+        <div class="mi"><i class="fas fa-circle"></i> AI generates branded proposals</div>
+        <div class="mi"><i class="fas fa-circle"></i> Automations manage calendar</div>
+        <div class="mi"><i class="fas fa-circle"></i> Scales exponentially with AI agents</div>
+      </div>
+    </div>
+    <div class="tb rv" data-tb style="margin-top:28px">
+      <div class="ta">💡</div>
+      <div class="tm"><strong>Key principle:</strong> <span class="hl">"Stay in the tool."</span> Never copy AI output to another platform manually. Build end-to-end workflows where AI handles input → process → output in one system.<span class="tw-cursor"></span></div>
+    </div>
+    <div class="nb rv">
+      <button class="btn btn-g" onclick="scrollToSection(0);playClick()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="btn btn-p" onclick="scrollToSection(2);playClick()"><span>Next: The Framework</span> <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 2: FRAMEWORK OVERVIEW ==================== -->
+<section class="sec" id="s2">
+  <div class="sec-in">
+    <div class="rv">
+      <div class="badge"><i class="fas fa-sitemap"></i> Lesson 2</div>
+      <h2 class="sec-t">The 5-Step AI<br>Automation Framework</h2>
+      <p class="sec-sub">A complete system that saves you <strong>Time</strong>, <strong>Energy</strong>, <strong>Money</strong> &amp; <strong>Stress</strong> — powered by Manis AI.</p>
+    </div>
+    <div class="tb rv" data-tb>
+      <div class="ta">🧑‍🏫</div>
+      <div class="tm">Here's the big picture. Every business needs 5 systems running. Most entrepreneurs do all 5 manually. With AI, you can <span class="hl">automate 80%+ of each step</span>. Let's explore them one by one — click any step below!<span class="tw-cursor"></span></div>
+    </div>
+    <div class="wv rv" id="workflowVis">
+      <div class="ws" onclick="showDetail(0);playClick()">
+        <div class="wi ib-p"><i class="fas fa-magnet"></i></div>
+        <div class="wn">1. Attract</div>
+      </div>
+      <div class="wa"><i class="fas fa-chevron-right"></i></div>
+      <div class="ws" onclick="showDetail(1);playClick()">
+        <div class="wi ib-s"><i class="fas fa-envelope-open-text"></i></div>
+        <div class="wn">2. Convert</div>
+      </div>
+      <div class="wa"><i class="fas fa-chevron-right"></i></div>
+      <div class="ws" onclick="showDetail(2);playClick()">
+        <div class="wi ib-a"><i class="fas fa-gift"></i></div>
+        <div class="wn">3. Deliver</div>
+      </div>
+      <div class="wa"><i class="fas fa-chevron-right"></i></div>
+      <div class="ws" onclick="showDetail(3);playClick()">
+        <div class="wi ib-g"><i class="fas fa-cogs"></i></div>
+        <div class="wn">4. Automate</div>
+      </div>
+      <div class="wa"><i class="fas fa-chevron-right"></i></div>
+      <div class="ws" onclick="showDetail(4);playClick()">
+        <div class="wi ib-b"><i class="fas fa-fingerprint"></i></div>
+        <div class="wn">5. Differentiate</div>
+      </div>
+    </div>
+    <div class="dp rv" id="detailPanel">
+      <div class="dp-title" id="dpTitle"></div>
+      <div class="dp-body" id="dpBody"></div>
+    </div>
+    <div class="rv" style="margin-top:20px">
+      <table class="st">
+        <tr><th>Step</th><th>What AI Does</th><th>Tools</th></tr>
+        <tr><td>Attract</td><td>Scrapes leads, analyses pain points, builds warm lists</td><td><span class="tr">Manis AI</span> + Instagram/Facebook</td></tr>
+        <tr><td>Convert</td><td>Drafts personalised outreach, tracks replies</td><td><span class="tr">Manis AI</span> + Instantly / SmartLead</td></tr>
+        <tr><td>Deliver</td><td>Creates branded reports, proposals, presentations</td><td><span class="tr">Manis AI</span> analysis engine</td></tr>
+        <tr><td>Automate</td><td>Schedules, replies, manages client comms</td><td><span class="tr">Manis AI</span> workflows</td></tr>
+        <tr><td>Differentiate</td><td>You add taste, vision &amp; care</td><td>Human creativity &amp; empathy</td></tr>
+      </table>
+    </div>
+    <div class="nb rv">
+      <button class="btn btn-g" onclick="scrollToSection(1);playClick()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="btn btn-p" onclick="scrollToSection(3);playClick()"><span>Deep Dive: Attract</span> <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 3: ATTRACT ==================== -->
+<section class="sec" id="s3">
+  <div class="sec-in">
+    <div class="rv">
+      <div class="sf" id="stepFlow">
+        <div class="sn act" onclick="scrollToSection(3);playClick()"><div class="sn-n">1</div><div class="sn-l">Attract</div></div><div class="sc act"></div>
+        <div class="sn" onclick="scrollToSection(4);playClick()"><div class="sn-n">2</div><div class="sn-l">Convert</div></div><div class="sc"></div>
+        <div class="sn" onclick="scrollToSection(5);playClick()"><div class="sn-n">3</div><div class="sn-l">Deliver</div></div><div class="sc"></div>
+        <div class="sn" onclick="scrollToSection(6);playClick()"><div class="sn-n">4</div><div class="sn-l">Automate</div></div><div class="sc"></div>
+        <div class="sn" onclick="scrollToSection(7);playClick()"><div class="sn-n">5</div><div class="sn-l">Differentiate</div></div>
+      </div>
+    </div>
+    <div class="rv">
+      <div class="badge"><i class="fas fa-magnet"></i> Step 1</div>
+      <h2 class="sec-t">Attract — AI-Powered<br>Lead Generation</h2>
+      <p class="sec-sub">Wake up every morning to a warm, qualified lead list — built while you slept.</p>
+    </div>
+    <div class="tb rv" data-tb>
+      <div class="ta">🧑‍🏫</div>
+      <div class="tm">Traditional lead gen = hours of scrolling, copying info, building spreadsheets. With AI, you <span class="hl">define your ideal buyer once</span>, and the agent scrapes Instagram, Facebook, websites &amp; more — extracting company info, recent posts, and even <span class="hl">inferred pain points</span>.<span class="tw-cursor"></span></div>
+    </div>
+    <div class="g2 rv">
+      <div class="gc" onclick="playClick()">
+        <div class="ib ib-p"><i class="fas fa-search"></i></div>
+        <div class="ct">Define Ideal Buyer</div>
+        <div class="cd">Tell AI: industry, company size, role, geography, pain points. It creates a targeting profile automatically.</div>
+      </div>
+      <div class="gc" onclick="playClick()">
+        <div class="ib ib-s"><i class="fas fa-spider"></i></div>
+        <div class="ct">AI Scrapes Data</div>
+        <div class="cd">Manis AI crawls social media profiles, company websites, LinkedIn — extracting names, emails, recent activity.</div>
+      </div>
+      <div class="gc" onclick="playClick()">
+        <div class="ib ib-a"><i class="fas fa-brain"></i></div>
+        <div class="ct">Pain Point Analysis</div>
+        <div class="cd">AI reads recent posts & content to infer what challenges each lead faces — giving you a warm conversation starter.</div>
+      </div>
+      <div class="gc" onclick="playClick()">
+        <div class="ib ib-g"><i class="fas fa-file-excel"></i></div>
+        <div class="ct">Warm Lead List</div>
+        <div class="cd">By morning you have a structured, enriched spreadsheet of 100+ qualified leads ready for outreach.</div>
+      </div>
+    </div>
+    <div class="tb rv" data-tb style="margin-top:28px">
+      <div class="ta">⚡</div>
+      <div class="tm"><strong>Pro tip:</strong> The key metric isn't quantity of leads — it's <span class="hlp">enrichment depth</span>. The more context AI gathers per lead, the more personalised your outreach, and the higher your conversion rate.<span class="tw-cursor"></span></div>
+    </div>
+    <div class="nb rv">
+      <button class="btn btn-g" onclick="scrollToSection(2);playClick()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="btn btn-p" onclick="scrollToSection(4);playClick()"><span>Next: Convert</span> <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 4: CONVERT ==================== -->
+<section class="sec" id="s4">
+  <div class="sec-in">
+    <div class="rv">
+      <div class="sf">
+        <div class="sn done"><div class="sn-n"><i class="fas fa-check" style="font-size:12px"></i></div><div class="sn-l">Attract</div></div><div class="sc act"></div>
+        <div class="sn act"><div class="sn-n">2</div><div class="sn-l">Convert</div></div><div class="sc"></div>
+        <div class="sn"><div class="sn-n">3</div><div class="sn-l">Deliver</div></div><div class="sc"></div>
+        <div class="sn"><div class="sn-n">4</div><div class="sn-l">Automate</div></div><div class="sc"></div>
+        <div class="sn"><div class="sn-n">5</div><div class="sn-l">Differentiate</div></div>
+      </div>
+    </div>
+    <div class="rv">
+      <div class="badge"><i class="fas fa-envelope-open-text"></i> Step 2</div>
+      <h2 class="sec-t">Convert — Personalised<br>AI Outreach</h2>
+      <p class="sec-sub">Turn cold leads into warm conversations using hyper-personalised messaging at scale.</p>
+    </div>
+    <div class="tb rv" data-tb>
+      <div class="ta">🧑‍🏫</div>
+      <div class="tm">Here's where most people get it wrong: they send <em>generic</em> messages. AI lets you <span class="hl">personalise every single email</span> by referencing each lead's recent social posts, campaigns, or company news. <span class="tr">Manis AI</span> drafts the emails, then sends via <span class="tr">Instantly</span> or <span class="tr">SmartLead</span>.<span class="tw-cursor"></span></div>
+    </div>
+    <div class="rv">
+      <div class="acc" onclick="toggleAcc(this);playClick()">
+        <div class="acc-h">📧 AI-Written Personalised Emails <i class="fas fa-chevron-down"></i></div>
+        <div class="acc-b"><p>Each email opens with a reference to the lead's recent Instagram post or campaign — proving you've done your homework. AI analyses their content and generates a natural, conversational opener that feels hand-written.</p></div>
+      </div>
+      <div class="acc" onclick="toggleAcc(this);playClick()">
+        <div class="acc-h">📊 Multi-Channel Outreach <i class="fas fa-chevron-down"></i></div>
+        <div class="acc-b"><p>Don't just email. AI can also generate LinkedIn connection messages and Instagram DMs — all personalised. Hit your leads where they're most active, increasing response rates by 3-5x compared to single-channel.</p></div>
+      </div>
+      <div class="acc" onclick="toggleAcc(this);playClick()">
+        <div class="acc-h">🔔 Smart Reply Tracking <i class="fas fa-chevron-down"></i></div>
+        <div class="acc-b"><p>AI monitors all inboxes and sends you instant notifications when a lead replies. No more manually checking 5 platforms. It can even categorise responses: interested, objection, not interested — so you prioritise your follow-ups.</p></div>
+      </div>
+      <div class="acc" onclick="toggleAcc(this);playClick()">
+        <div class="acc-h">⚡ Follow-Up Sequences <i class="fas fa-chevron-down"></i></div>
+        <div class="acc-b"><p>If no reply in 3 days, AI automatically sends a different follow-up — again personalised, not just a "bumping this to the top of your inbox" template. Each follow-up adds new value: a case study, a tip, a relevant insight.</p></div>
+      </div>
+    </div>
+    <div class="tb rv" data-tb style="margin-top:24px">
+      <div class="ta">🎯</div>
+      <div class="tm"><strong>Result:</strong> What took 4-6 hours daily now takes <span class="hl">15 minutes of review</span>. You go from sending 20 emails/day manually to 200+ hyper-personalised messages while focusing on closing, not writing.<span class="tw-cursor"></span></div>
+    </div>
+    <div class="nb rv">
+      <button class="btn btn-g" onclick="scrollToSection(3);playClick()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="btn btn-p" onclick="scrollToSection(5);playClick()"><span>Next: Deliver</span> <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 5: DELIVER ==================== -->
+<section class="sec" id="s5">
+  <div class="sec-in">
+    <div class="rv">
+      <div class="sf">
+        <div class="sn done"><div class="sn-n"><i class="fas fa-check" style="font-size:12px"></i></div><div class="sn-l">Attract</div></div><div class="sc act"></div>
+        <div class="sn done"><div class="sn-n"><i class="fas fa-check" style="font-size:12px"></i></div><div class="sn-l">Convert</div></div><div class="sc act"></div>
+        <div class="sn act"><div class="sn-n">3</div><div class="sn-l">Deliver</div></div><div class="sc"></div>
+        <div class="sn"><div class="sn-n">4</div><div class="sn-l">Automate</div></div><div class="sc"></div>
+        <div class="sn"><div class="sn-n">5</div><div class="sn-l">Differentiate</div></div>
+      </div>
+    </div>
+    <div class="rv">
+      <div class="badge"><i class="fas fa-gift"></i> Step 3</div>
+      <h2 class="sec-t">Deliver — AI-Generated<br>Client Deliverables</h2>
+      <p class="sec-sub">Create branded reports, proposals &amp; presentations in minutes — not days.</p>
+    </div>
+    <div class="tb rv" data-tb>
+      <div class="ta">🧑‍🏫</div>
+      <div class="tm">This is where AI goes <em>beyond</em> simple tasks. <span class="tr">Manis AI</span> can <span class="hl">analyse a client's entire online presence</span>, extract key insights, and generate a fully branded presentation — matching their colours, fonts, and style. Then publish it as a shareable link.<span class="tw-cursor"></span></div>
+    </div>
+    <div class="g3 rv">
+      <div class="gc" onclick="playClick()">
+        <div class="ib ib-a"><i class="fas fa-chart-bar"></i></div>
+        <div class="ct">Data Analysis</div>
+        <div class="cd">AI analyses client's social media metrics, website performance, competitor positioning — extracting actionable insights automatically.</div>
+      </div>
+      <div class="gc" onclick="playClick()">
+        <div class="ib ib-p"><i class="fas fa-palette"></i></div>
+        <div class="ct">Brand Matching</div>
+        <div class="cd">Extracts client's brand colours, fonts, logo usage and creates deliverables that look like they came from the client's own design team.</div>
+      </div>
+      <div class="gc" onclick="playClick()">
+        <div class="ib ib-s"><i class="fas fa-link"></i></div>
+        <div class="ct">Shareable Output</div>
+        <div class="cd">Generates a public link to a professional proposal or report that clients can view, share with their team, and be impressed by.</div>
+      </div>
+    </div>
+    <div class="tb rv" data-tb style="margin-top:24px">
+      <div class="ta">🔑</div>
+      <div class="tm"><strong>Why this matters:</strong> When a prospect sees a <span class="hl">custom-branded proposal</span> that references their specific data and pain points — before they've even paid you — it creates <span class="hlp">instant trust</span>. You stand out from every competitor sending generic pitch decks.<span class="tw-cursor"></span></div>
+    </div>
+    <div class="nb rv">
+      <button class="btn btn-g" onclick="scrollToSection(4);playClick()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="btn btn-p" onclick="scrollToSection(6);playClick()"><span>Next: Automate</span> <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 6: AUTOMATE ==================== -->
+<section class="sec" id="s6">
+  <div class="sec-in">
+    <div class="rv">
+      <div class="sf">
+        <div class="sn done"><div class="sn-n"><i class="fas fa-check" style="font-size:12px"></i></div><div class="sn-l">Attract</div></div><div class="sc act"></div>
+        <div class="sn done"><div class="sn-n"><i class="fas fa-check" style="font-size:12px"></i></div><div class="sn-l">Convert</div></div><div class="sc act"></div>
+        <div class="sn done"><div class="sn-n"><i class="fas fa-check" style="font-size:12px"></i></div><div class="sn-l">Deliver</div></div><div class="sc act"></div>
+        <div class="sn act"><div class="sn-n">4</div><div class="sn-l">Automate</div></div><div class="sc"></div>
+        <div class="sn"><div class="sn-n">5</div><div class="sn-l">Differentiate</div></div>
+      </div>
+    </div>
+    <div class="rv">
+      <div class="badge"><i class="fas fa-cogs"></i> Step 4</div>
+      <h2 class="sec-t">Automate — Scale<br>Without More Humans</h2>
+      <p class="sec-sub">Eliminate repetitive admin work and scale your operations exponentially.</p>
+    </div>
+    <div class="tb rv" data-tb>
+      <div class="ta">🧑‍🏫</div>
+      <div class="tm">Every business hits a ceiling: you can't hire fast enough, train fast enough, or manage enough people. AI breaks that ceiling. <span class="hl">Repetitive workflows run 24/7</span> without sick days, errors, or salary negotiations.<span class="tw-cursor"></span></div>
+    </div>
+    <div class="rv">
+      <ul class="il">
+        <li onclick="playClick()"><div class="li-i"><i class="fas fa-calendar-check"></i></div><span>Scheduling — AI manages your calendar, books meetings, handles rescheduling</span><span class="li-arr"><i class="fas fa-arrow-right"></i></span></li>
+        <li onclick="playClick()"><div class="li-i"><i class="fas fa-reply"></i></div><span>FAQ Replies — Common client questions answered instantly and accurately</span><span class="li-arr"><i class="fas fa-arrow-right"></i></span></li>
+        <li onclick="playClick()"><div class="li-i"><i class="fas fa-bell"></i></div><span>Follow-ups — Automated reminders and check-ins with clients and prospects</span><span class="li-arr"><i class="fas fa-arrow-right"></i></span></li>
+        <li onclick="playClick()"><div class="li-i"><i class="fas fa-user-tie"></i></div><span>Assistant Management — AI handles your VA's workload and prioritisation</span><span class="li-arr"><i class="fas fa-arrow-right"></i></span></li>
+        <li onclick="playClick()"><div class="li-i"><i class="fas fa-file-invoice"></i></div><span>Invoicing & Reporting — Generate and send documents automatically</span><span class="li-arr"><i class="fas fa-arrow-right"></i></span></li>
+      </ul>
+    </div>
+    <div class="g3 rv" style="margin-top:28px">
+      <div style="text-align:center;padding:20px">
+        <div class="stat-n" data-count="80">0</div>
+        <div class="stat-l">% Tasks Automatable</div>
+      </div>
+      <div style="text-align:center;padding:20px">
+        <div class="stat-n" data-count="24">0</div>
+        <div class="stat-l">/ 7 Operations</div>
+      </div>
+      <div style="text-align:center;padding:20px">
+        <div class="stat-n" data-count="10">0</div>
+        <div class="stat-l">x Faster Than Manual</div>
+      </div>
+    </div>
+    <div class="nb rv">
+      <button class="btn btn-g" onclick="scrollToSection(5);playClick()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="btn btn-p" onclick="scrollToSection(7);playClick()"><span>Next: Differentiate</span> <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 7: DIFFERENTIATE ==================== -->
+<section class="sec" id="s7">
+  <div class="sec-in">
+    <div class="rv">
+      <div class="sf">
+        <div class="sn done"><div class="sn-n"><i class="fas fa-check" style="font-size:12px"></i></div><div class="sn-l">Attract</div></div><div class="sc act"></div>
+        <div class="sn done"><div class="sn-n"><i class="fas fa-check" style="font-size:12px"></i></div><div class="sn-l">Convert</div></div><div class="sc act"></div>
+        <div class="sn done"><div class="sn-n"><i class="fas fa-check" style="font-size:12px"></i></div><div class="sn-l">Deliver</div></div><div class="sc act"></div>
+        <div class="sn done"><div class="sn-n"><i class="fas fa-check" style="font-size:12px"></i></div><div class="sn-l">Automate</div></div><div class="sc act"></div>
+        <div class="sn act"><div class="sn-n">5</div><div class="sn-l">Differentiate</div></div>
+      </div>
+    </div>
+    <div class="rv">
+      <div class="badge"><i class="fas fa-fingerprint"></i> Step 5</div>
+      <h2 class="sec-t">Differentiate — The<br>Human Advantage</h2>
+      <p class="sec-sub">AI handles the routine. You bring what no machine can: taste, vision, and genuine care.</p>
+    </div>
+    <div class="tb rv" data-tb>
+      <div class="ta">🧑‍🏫</div>
+      <div class="tm">This is the most important lesson. When everyone has access to the same AI tools, <span class="hl">the differentiator is YOU</span>. Your taste in recognising quality, your vision for where the market is heading, and your care for each client's success.<span class="tw-cursor"></span></div>
+    </div>
+    <div class="g3 rv">
+      <div class="gc" onclick="playClick()" style="text-align:center">
+        <div style="font-size:42px;margin-bottom:14px">🎨</div>
+        <div class="ct">Taste</div>
+        <div class="cd">Knowing what quality looks like. Refining AI output until it's genuinely excellent. Not accepting "good enough" when clients deserve great.</div>
+      </div>
+      <div class="gc" onclick="playClick()" style="text-align:center">
+        <div style="font-size:42px;margin-bottom:14px">🔭</div>
+        <div class="ct">Vision</div>
+        <div class="cd">Seeing where the market is going — not just where it is. Anticipating client needs before they articulate them. Innovating ahead of the curve.</div>
+      </div>
+      <div class="gc" onclick="playClick()" style="text-align:center">
+        <div style="font-size:42px;margin-bottom:14px">💚</div>
+        <div class="ct">Care</div>
+        <div class="cd">Building real emotional connections. Understanding the human behind the business. Making clients feel genuinely heard, valued, and supported.</div>
+      </div>
+    </div>
+    <div class="tb rv" data-tb style="margin-top:24px">
+      <div class="ta">🧠</div>
+      <div class="tm"><strong>Remember:</strong> <span class="hl">AI's programming language is English</span>. You don't need to code. You need to <em>think clearly</em>, communicate precisely, and develop the uniquely human skills that make your business irreplaceable.<span class="tw-cursor"></span></div>
+    </div>
+    <div class="nb rv">
+      <button class="btn btn-g" onclick="scrollToSection(6);playClick()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="btn btn-p" onclick="scrollToSection(8);playClick()"><span>Test Your Knowledge</span> <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 8: QUIZ ==================== -->
+<section class="sec" id="s8">
+  <div class="sec-in">
+    <div class="rv">
+      <div class="badge"><i class="fas fa-question-circle"></i> Knowledge Check</div>
+      <h2 class="sec-t">Test What<br>You Learned</h2>
+      <p class="sec-sub">Quick quiz to reinforce the key concepts. Click the best answer!</p>
+    </div>
+
+    <!-- Quiz 1 -->
+    <div class="qc rv" id="q1">
+      <div class="qq">1. What is the core mindset shift this framework teaches?</div>
+      <div class="qo">
+        <div class="qo-i" onclick="checkQuiz(this,false,'q1f')"><div class="qo-l">A</div>Learn to code AI models from scratch</div>
+        <div class="qo-i" onclick="checkQuiz(this,true,'q1f')"><div class="qo-l">B</div>Shift from Doer to Director — manage AI agents</div>
+        <div class="qo-i" onclick="checkQuiz(this,false,'q1f')"><div class="qo-l">C</div>Replace all human staff immediately</div>
+        <div class="qo-i" onclick="checkQuiz(this,false,'q1f')"><div class="qo-l">D</div>Focus only on social media marketing</div>
+      </div>
+      <div class="qf" id="q1f"></div>
+    </div>
+
+    <!-- Quiz 2 -->
+    <div class="qc rv" id="q2" style="margin-top:18px">
+      <div class="qq">2. What does "Stay in the tool" mean?</div>
+      <div class="qo">
+        <div class="qo-i" onclick="checkQuiz(this,false,'q2f')"><div class="qo-l">A</div>Never leave your desk</div>
+        <div class="qo-i" onclick="checkQuiz(this,false,'q2f')"><div class="qo-l">B</div>Only use one software forever</div>
+        <div class="qo-i" onclick="checkQuiz(this,true,'q2f')"><div class="qo-l">C</div>Build end-to-end workflows without manual copy-pasting</div>
+        <div class="qo-i" onclick="checkQuiz(this,false,'q2f')"><div class="qo-l">D</div>Keep AI running 24/7 without oversight</div>
+      </div>
+      <div class="qf" id="q2f"></div>
+    </div>
+
+    <!-- Quiz 3 -->
+    <div class="qc rv" id="q3" style="margin-top:18px">
+      <div class="qq">3. What are the 3 human differentiators AI cannot replace?</div>
+      <div class="qo">
+        <div class="qo-i" onclick="checkQuiz(this,false,'q3f')"><div class="qo-l">A</div>Speed, Scale, Savings</div>
+        <div class="qo-i" onclick="checkQuiz(this,false,'q3f')"><div class="qo-l">B</div>Data, Analytics, Reporting</div>
+        <div class="qo-i" onclick="checkQuiz(this,true,'q3f')"><div class="qo-l">C</div>Taste, Vision, Care</div>
+        <div class="qo-i" onclick="checkQuiz(this,false,'q3f')"><div class="qo-l">D</div>Coding, Design, Writing</div>
+      </div>
+      <div class="qf" id="q3f"></div>
+    </div>
+
+    <div class="nb rv" style="justify-content:center">
+      <button class="btn btn-g" onclick="scrollToSection(7);playClick()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="btn btn-p" onclick="scrollToSection(9);playClick()"><span>Final Summary</span> <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 9: CONCLUSION ==================== -->
+<section class="sec" id="s9">
+  <div class="sec-in" style="text-align:center">
+    <div class="rv">
+      <div class="badge"><i class="fas fa-trophy"></i> Masterclass Complete</div>
+      <h2 class="sec-t">You Now Have<br>The Framework</h2>
+      <p class="sec-sub" style="margin:0 auto 32px">Here's everything in one view — your complete AI business automation playbook.</p>
+    </div>
+    <div class="rv" style="text-align:left;max-width:650px;margin:0 auto">
+      <ul class="cl">
+        <li><i class="fas fa-check-circle"></i><strong style="color:var(--tw);margin-right:4px">Mindset:</strong> Be the Director. AI is your team. Give instructions, review output, iterate.</li>
+        <li><i class="fas fa-check-circle"></i><strong style="color:var(--tw);margin-right:4px">Attract:</strong> AI builds warm, enriched lead lists overnight by scraping social &amp; web data.</li>
+        <li><i class="fas fa-check-circle"></i><strong style="color:var(--tw);margin-right:4px">Convert:</strong> Hyper-personalised multi-channel outreach at scale with automated follow-ups.</li>
+        <li><i class="fas fa-check-circle"></i><strong style="color:var(--tw);margin-right:4px">Deliver:</strong> AI generates branded proposals, reports &amp; presentations that wow clients.</li>
+        <li><i class="fas fa-check-circle"></i><strong style="color:var(--tw);margin-right:4px">Automate:</strong> Scheduling, replies, invoicing, and admin run on autopilot 24/7.</li>
+        <li><i class="fas fa-check-circle"></i><strong style="color:var(--tw);margin-right:4px">Differentiate:</strong> Taste, Vision &amp; Care are your unfair advantage. Develop them relentlessly.</li>
+        <li><i class="fas fa-check-circle"></i><strong style="color:var(--tw);margin-right:4px">Stay in the tool:</strong> End-to-end automation. No manual copy-pasting between platforms.</li>
+        <li><i class="fas fa-check-circle"></i><strong style="color:var(--tw);margin-right:4px">Language:</strong> AI's programming language is English. You already speak it.</li>
+      </ul>
+    </div>
+    <div class="rv" style="margin-top:36px">
+      <div class="comp-badge" style="font-size:14px;padding:10px 24px"><i class="fas fa-medal"></i> Masterclass Complete — You're Ready to Build</div>
+    </div>
+    <div class="rv" style="margin-top:28px">
+      <button class="btn btn-p pulse" onclick="scrollToSection(0);playClick()"><span>🔄 Review Again</span></button>
+    </div>
+    <div class="kc rv" style="justify-content:center;margin-top:32px">
+      <span class="kt">AI automation</span><span class="kt">Director mindset</span><span class="kt">Lead generation</span>
+      <span class="kt">Personalised outreach</span><span class="kt">Manis AI</span><span class="kt">Business scaling</span>
+      <span class="kt">Workflow automation</span><span class="kt">Taste · Vision · Care</span>
+      <span class="kt">End-to-end automation</span><span class="kt">AI-driven proposals</span>
+    </div>
+  </div>
+  <div class="glow-orb" style="width:350px;height:350px;background:var(--s);top:20%;right:10%"></div>
+  <div class="glow-orb" style="width:250px;height:250px;background:var(--p);bottom:15%;left:10%"></div>
+</section>
+
+<!-- ==================== SCRIPTS ==================== -->
+<script>
+// ===== CONFIG =====
+const SECTIONS = ['s0','s1','s2','s3','s4','s5','s6','s7','s8','s9'];
+const SECTION_NAMES = ['Welcome','Mindset','Framework','Attract','Convert','Deliver','Automate','Differentiate','Quiz','Summary'];
+let soundOn = true;
+let audioCtx;
+
+// ===== SOUND ENGINE (Web Audio API) =====
+function getAudioCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+function playTone(freq,dur,type='sine',vol=.08){
+  if(!soundOn) return;
+  try{
+    const ctx=getAudioCtx(),o=ctx.createOscillator(),g=ctx.createGain();
+    o.type=type;o.frequency.setValueAtTime(freq,ctx.currentTime);
+    g.gain.setValueAtTime(vol,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
+    o.connect(g);g.connect(ctx.destination);
+    o.start();o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+function playClick(){playTone(800,.08,'sine',.06);playTone(1200,.06,'sine',.04)}
+function playSuccess(){playTone(523,.12,'sine',.07);setTimeout(()=>playTone(659,.12,'sine',.07),100);setTimeout(()=>playTone(784,.2,'sine',.07),200)}
+function playError(){playTone(200,.25,'sawtooth',.05)}
+function playWhoosh(){playTone(300,.15,'sine',.03);playTone(600,.1,'sine',.02)}
+function playNav(){playTone(900,.06,'sine',.04)}
+
+document.getElementById('soundBtn').onclick=function(){
+  soundOn=!soundOn;
+  this.innerHTML=soundOn?'<i class="fas fa-volume-up"></i>':'<i class="fas fa-volume-mute"></i>';
+  if(soundOn)playClick();
+};
+
+// ===== THREE.JS PARTICLE BACKGROUND =====
+(function(){
+  const canvas=document.getElementById('bgCanvas');
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:false});
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
+
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,.1,1000);
+  camera.position.z=50;
+
+  // Particles
+  const count=window.innerWidth<768?200:500;
+  const geo=new THREE.BufferGeometry();
+  const pos=new Float32Array(count*3);
+  const vel=new Float32Array(count*3);
+  for(let i=0;i<count*3;i+=3){
+    pos[i]=(Math.random()-.5)*100;
+    pos[i+1]=(Math.random()-.5)*100;
+    pos[i+2]=(Math.random()-.5)*60;
+    vel[i]=(Math.random()-.5)*.02;
+    vel[i+1]=(Math.random()-.5)*.02;
+    vel[i+2]=(Math.random()-.5)*.01;
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+
+  const mat=new THREE.PointsMaterial({color:0x6C5CE7,size:1.5,transparent:true,opacity:.4,sizeAttenuation:true});
+  const pts=new THREE.Points(geo,mat);
+  scene.add(pts);
+
+  // Lines connecting nearby particles
+  const lineGeo=new THREE.BufferGeometry();
+  const lineMax=window.innerWidth<768?100:300;
+  const linePos=new Float32Array(lineMax*6);
+  lineGeo.setAttribute('position',new THREE.BufferAttribute(linePos,3));
+  const lineMat=new THREE.LineBasicMaterial({color:0x6C5CE7,transparent:true,opacity:.06});
+  const lines=new THREE.LineSegments(lineGeo,lineMat);
+  scene.add(lines);
+
+  let mouse={x:0,y:0};
+  document.addEventListener('mousemove',e=>{
+    mouse.x=(e.clientX/window.innerWidth-.5)*20;
+    mouse.y=(e.clientY/window.innerHeight-.5)*-20;
+  });
+
+  function animate(){
+    requestAnimationFrame(animate);
+    const p=geo.attributes.position.array;
+    for(let i=0;i<count*3;i+=3){
+      p[i]+=vel[i];p[i+1]+=vel[i+1];p[i+2]+=vel[i+2];
+      if(Math.abs(p[i])>50)vel[i]*=-1;
+      if(Math.abs(p[i+1])>50)vel[i+1]*=-1;
+      if(Math.abs(p[i+2])>30)vel[i+2]*=-1;
+    }
+    geo.attributes.position.needsUpdate=true;
+
+    // Update lines
+    let li=0;
+    const lp=lineGeo.attributes.position.array;
+    for(let i=0;i<count&&li<lineMax;i++){
+      for(let j=i+1;j<count&&li<lineMax;j++){
+        const dx=p[i*3]-p[j*3],dy=p[i*3+1]-p[j*3+1],dz=p[i*3+2]-p[j*3+2];
+        const d=dx*dx+dy*dy+dz*dz;
+        if(d<120){
+          lp[li*6]=p[i*3];lp[li*6+1]=p[i*3+1];lp[li*6+2]=p[i*3+2];
+          lp[li*6+3]=p[j*3];lp[li*6+4]=p[j*3+1];lp[li*6+5]=p[j*3+2];
+          li++;
+        }
+      }
+    }
+    for(let k=li*6;k<lineMax*6;k++)lp[k]=0;
+    lineGeo.attributes.position.needsUpdate=true;
+    lineGeo.setDrawRange(0,li*2);
+
+    camera.position.x+=(mouse.x-camera.position.x)*.02;
+    camera.position.y+=(mouse.y-camera.position.y)*.02;
+    camera.lookAt(0,0,0);
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  window.addEventListener('resize',()=>{
+    camera.aspect=window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth,window.innerHeight);
+  });
+})();
+
+// ===== SIDE NAV DOTS =====
+(function(){
+  const nav=document.getElementById('sideNav');
+  SECTIONS.forEach((id,i)=>{
+    const d=document.createElement('div');
+    d.className='nd';d.dataset.idx=i;
+    d.innerHTML=`<div class="tip">${SECTION_NAMES[i]}</div>`;
+    d.onclick=()=>{scrollToSection(i);playNav()};
+    nav.appendChild(d);
+  });
+})();
+
+// ===== SCROLL FUNCTIONS =====
+function scrollToSection(i){
+  const el=document.getElementById(SECTIONS[i]);
+  if(el) el.scrollIntoView({behavior:'smooth'});
+  playWhoosh();
+}
+
+// ===== PROGRESS BAR & ACTIVE NAV =====
+function updateProgress(){
+  const scrollTop=window.scrollY;
+  const docHeight=document.documentElement.scrollHeight-window.innerHeight;
+  const pct=docHeight>0?(scrollTop/docHeight)*100:0;
+  document.getElementById('progressBar').style.width=pct+'%';
+
+  // Active nav dot
+  const dots=document.querySelectorAll('.nd');
+  let activeIdx=0;
+  SECTIONS.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el&&el.offsetTop-window.innerHeight/2<=scrollTop) activeIdx=i;
+  });
+  dots.forEach((d,i)=>{d.classList.toggle('active',i===activeIdx)});
+}
+window.addEventListener('scroll',updateProgress);
+
+// ===== REVEAL ON SCROLL =====
+function revealOnScroll(){
+  document.querySelectorAll('.rv:not(.vis)').forEach(el=>{
+    const rect=el.getBoundingClientRect();
+    if(rect.top<window.innerHeight*.88){
+      el.classList.add('vis');
+      // Animate with anime.js
+      anime({targets:el,translateY:[28,0],opacity:[0,1],duration:800,easing:'easeOutCubic'});
+    }
+  });
+  // Teacher bubbles
+  document.querySelectorAll('.tb:not(.vis)').forEach(el=>{
+    const rect=el.getBoundingClientRect();
+    if(rect.top<window.innerHeight*.85){
+      el.classList.add('vis');
+      anime({targets:el,translateY:[20,0],opacity:[0,1],duration:700,easing:'easeOutCubic',delay:200});
+      playNav();
+    }
+  });
+}
+window.addEventListener('scroll',revealOnScroll);
+
+// ===== COUNTER ANIMATION =====
+function animateCounters(){
+  document.querySelectorAll('.stat-n[data-count]').forEach(el=>{
+    if(el.dataset.done) return;
+    const rect=el.getBoundingClientRect();
+    if(rect.top<window.innerHeight*.9){
+      el.dataset.done='1';
+      const target=parseInt(el.dataset.count);
+      anime({targets:{val:0},val:target,round:1,duration:1800,easing:'easeOutExpo',
+        update:a=>{el.textContent=Math.round(a.animations[0].currentValue)+(el.dataset.count==='80'?'%':el.dataset.count==='24'?'/7':'x')}
+      });
+    }
+  });
+}
+window.addEventListener('scroll',animateCounters);
+
+// ===== ACCORDION =====
+function toggleAcc(el){
+  const wasOpen=el.classList.contains('open');
+  // close all sibling
+  el.parentElement.querySelectorAll('.acc').forEach(a=>a.classList.remove('open'));
+  if(!wasOpen) el.classList.add('open');
+}
+
+// ===== DETAIL PANEL (Framework) =====
+const detailData=[
+  {title:'<i class="fas fa-magnet" style="color:var(--p)"></i> 1. Attract — Lead Generation',body:'Define your ideal buyer profile and let Manis AI scrape social media (Instagram, Facebook, LinkedIn), websites, and directories. It extracts: names, emails, company info, recent posts, and inferred pain points. You wake up to a warm, enriched lead list of 100+ prospects ready for outreach.'},
+  {title:'<i class="fas fa-envelope-open-text" style="color:var(--s)"></i> 2. Convert — Personalised Outreach',body:'AI drafts hyper-personalised emails, LinkedIn messages, and Instagram DMs — each referencing the lead\'s recent activity. Messages are sent through tools like Instantly or SmartLead. AI tracks replies, categorises responses, and triggers follow-up sequences automatically.'},
+  {title:'<i class="fas fa-gift" style="color:var(--a)"></i> 3. Deliver — Client Deliverables',body:'Beyond simple tasks, AI analyses a client\'s entire online presence, extracts data-driven insights, and generates branded presentations, reports, and proposals. It matches the client\'s brand colours, fonts, and style — then publishes as a shareable link for maximum impact.'},
+  {title:'<i class="fas fa-cogs" style="color:var(--g)"></i> 4. Automate — Scale Operations',body:'Scheduling, FAQ replies, follow-ups, client communication, VA management, invoicing — all run on autopilot. AI manages your assistant\'s workload, automates messaging sequences, and handles repetitive admin. Scale without proportionally increasing headcount.'},
+  {title:'<i class="fas fa-fingerprint" style="color:var(--b)"></i> 5. Differentiate — Human Edge',body:'When everyone has AI, what sets you apart is <strong>Taste</strong> (knowing quality), <strong>Vision</strong> (anticipating the future), and <strong>Care</strong> (genuine empathy). These uniquely human skills are your competitive moat. Develop them relentlessly.'}
+];
+function showDetail(i){
+  const panel=document.getElementById('detailPanel');
+  const wasOpen=panel.classList.contains('open');
+  const wasIdx=panel.dataset.idx;
+  if(wasOpen&&wasIdx==i){panel.classList.remove('open');return}
+  document.getElementById('dpTitle').innerHTML=detailData[i].title;
+  document.getElementById('dpBody').innerHTML=detailData[i].body;
+  panel.dataset.idx=i;
+  panel.classList.add('open');
+  anime({targets:panel,opacity:[0,1],duration:400,easing:'easeOutCubic'});
+}
+
+// ===== QUIZ =====
+function checkQuiz(el,correct,fbId){
+  const parent=el.closest('.qc');
+  if(parent.dataset.done) return;
+  parent.dataset.done='1';
+  const fb=document.getElementById(fbId);
+  if(correct){
+    el.classList.add('ok');
+    fb.className='qf show win';
+    fb.textContent='✅ Correct! Well done.';
+    playSuccess();
+  } else {
+    el.classList.add('no');
+    // Highlight correct
+    parent.querySelectorAll('.qo-i').forEach(o=>{
+      // find the correct one (hardcoded based on structure)
+    });
+    fb.className='qf show lose';
+    fb.textContent='❌ Not quite — review the lesson and try to remember for next time!';
+    playError();
+  }
+  // Disable all options
+  parent.querySelectorAll('.qo-i').forEach(o=>{o.style.pointerEvents='none'});
+}
+
+// ===== LOADER =====
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    document.getElementById('loader').classList.add('hidden');
+    // Initial reveal
+    revealOnScroll();
+    updateProgress();
+    playSuccess();
+  },1200);
+});
+
+// ===== CARD HOVER MICRO-INTERACTIONS =====
+document.querySelectorAll('.gc').forEach(card=>{
+  card.addEventListener('mouseenter',()=>{
+    anime({targets:card,scale:1.02,duration:300,easing:'easeOutCubic'});
+  });
+  card.addEventListener('mouseleave',()=>{
+    anime({targets:card,scale:1,duration:300,easing:'easeOutCubic'});
+  });
+});
+
+// ===== KEYWORD TAG INTERACTION =====
+document.querySelectorAll('.kt').forEach(tag=>{
+  tag.addEventListener('click',function(){
+    playClick();
+    anime({targets:this,scale:[1,1.15,1],duration:400,easing:'easeOutElastic(1,.5)'});
+  });
+});
+
+// ===== INITIAL CALL =====
+revealOnScroll();
+animateCounters();
+</script>
+</body>
+</html>
